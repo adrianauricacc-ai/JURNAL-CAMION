@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jurnal Camion</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f2f4f7;
+    color: #111827;
+}
+
+header {
+    background: #111827;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.container {
+    max-width: 600px;
+    margin: auto;
+    padding: 15px;
+}
+
+.card {
+    background: white;
+    padding: 18px;
+    margin-bottom: 15px;
+    border-radius: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+
+label {
+    display: block;
+    margin-top: 12px;
+    margin-bottom: 6px;
+    font-weight: bold;
+}
+
+input, textarea {
+    width: 100%;
+    padding: 12px;
+    box-sizing: border-box;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    font-size: 16px;
+}
+
+textarea {
+    min-height: 80px;
+}
+
+button {
+    border: none;
+    border-radius: 10px;
+    padding: 13px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.save {
+    width: 100%;
+    margin-top: 18px;
+    background: #1683ff;
+    color: white;
+}
+
+.type-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.type-buttons button {
+    flex: 1;
+    background: #eee;
+}
+
+.type-buttons button.active {
+    background: #1683ff;
+    color: white;
+}
+
+.menu {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.menu button {
+    flex: 1;
+    background: white;
+}
+
+.trip {
+    border-top: 1px solid #ddd;
+    padding: 12px 0;
+}
+
+.trip:first-child {
+    border-top: none;
+}
+
+.badge {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 20px;
+    background: #e8f1ff;
+    color: #1261b5;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.stat {
+    font-size: 28px;
+    font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+🚛 Jurnal Camion
+</header>
+
+<div class="container">
+
+<div class="menu">
+<button onclick="showSection('new')">➕ Cursă</button>
+<button onclick="showSection('history')">📋 Istoric</button>
+<button onclick="showSection('stats')">📊 Statistici</button>
+</div>
+
+<div id="new" class="section">
+
+<div class="card">
+
+<h2>➕ Cursă nouă</h2>
+
+<label>📍 Loc plecare</label>
+<input id="from" placeholder="Ex: Madrid">
+
+<label>📍 Destinație</label>
+<input id="to" placeholder="Ex: Barcelona">
+
+<label>🛣️ Kilometri</label>
+<input id="km" type="number" placeholder="Ex: 620">
+
+<label>📦 Operațiune</label>
+
+<div class="type-buttons">
+<button id="loadBtn" class="active" onclick="setType('Încărcare')">
+🔵 Încărcare
+</button>
+
+<button id="unloadBtn" onclick="setType('Descărcare')">
+🟢 Descărcare
+</button>
+</div>
+
+<label>📄 Număr CMR</label>
+<input id="cmr" placeholder="Ex: 123456">
+
+<label>📝 Observații</label>
+<textarea id="notes" placeholder="Observații..."></textarea>
+
+<button class="save" onclick="saveTrip()">
+💾 SALVEAZĂ CURSA
+</button>
+
+</div>
+
+</div>
+
+<div id="history" class="section" style="display:none">
+
+<div class="card">
+
+<h2>📋 Istoric curse</h2>
+
+<div id="historyList">
+Nu există curse salvate.
+</div>
+
+</div>
+
+</div>
+
+<div id="stats" class="section" style="display:none">
+
+<div class="card">
+<div>Total curse</div>
+<div class="stat" id="totalTrips">0</div>
+</div>
+
+<div class="card">
+<div>Total kilometri</div>
+<div class="stat" id="totalKm">0 km</div>
+</div>
+
+<div class="card">
+<div>Încărcări</div>
+<div class="stat" id="totalLoads">0</div>
+</div>
+
+<div class="card">
+<div>Descărcări</div>
+<div class="stat" id="totalUnloads">0</div>
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+let operation = "Încărcare";
+
+let trips = JSON.parse(
+    localStorage.getItem("jurnalCamion") || "[]"
+);
+
+function setType(type) {
+
+    operation = type;
+
+    document
+        .getElementById("loadBtn")
+        .classList.toggle("active", type === "Încărcare");
+
+    document
+        .getElementById("unloadBtn")
+        .classList.toggle("active", type === "Descărcare");
+}
+
+function saveTrip() {
+
+    const from =
+        document.getElementById("from").value.trim();
+
+    const to =
+        document.getElementById("to").value.trim();
+
+    const km =
+        Number(document.getElementById("km").value);
+
+    const cmr =
+        document.getElementById("cmr").value.trim();
+
+    const notes =
+        document.getElementById("notes").value.trim();
+
+    if (!from || !to || !km || !cmr) {
+
+        alert(
+            "Completează plecarea, destinația, kilometrii și CMR-ul."
+        );
+
+        return;
+    }
+
+    const trip = {
+
+        date: new Date().toLocaleString("ro-RO"),
+
+        from: from,
+
+        to: to,
+
+        km: km,
+
+        operation: operation,
+
+        cmr: cmr,
+
+        notes: notes
+    };
+
+    trips.unshift(trip);
+
+    localStorage.setItem(
+        "jurnalCamion",
+        JSON.stringify(trips)
+    );
+
+    document.getElementById("from").value = "";
+    document.getElementById("to").value = "";
+    document.getElementById("km").value = "";
+    document.getElementById("cmr").value = "";
+    document.getElementById("notes").value = "";
+
+    alert("✅ Cursa a fost salvată!");
+
+    showSection("history");
+}
+
+function showSection(section) {
+
+    document.getElementById("new").style.display = "none";
+
+    document.getElementById("history").style.display = "none";
+
+    document.getElementById("stats").style.display = "none";
+
+    document.getElementById(section).style.display = "block";
+
+    if (section === "history") {
+        displayHistory();
+    }
+
+    if (section === "stats") {
+        displayStats();
+    }
+}
+
+function displayHistory() {
+
+    const list =
+        document.getElementById("historyList");
+
+    if (trips.length === 0) {
+
+        list.innerHTML =
+            "Nu există curse salvate.";
+
+        return;
+    }
+
+    list.innerHTML = "";
+
+    trips.forEach(trip => {
+
+        const div =
+            document.createElement("div");
+
+        div.className = "trip";
+
+        div.innerHTML = `
+
+            <span class="badge">
+                ${trip.operation}
+            </span>
+
+            <h3>
+                ${trip.from} → ${trip.to}
+            </h3>
+
+            <div>
+                🛣️ ${trip.km} km
+            </div>
+
+            <div>
+                📄 CMR: ${trip.cmr}
+            </div>
+
+            <div>
+                🕐 ${trip.date}
+            </div>
+
+            ${
+                trip.notes
+                ? `<div>📝 ${trip.notes}</div>`
+                : ""
+            }
+
+        `;
+
+        list.appendChild(div);
+    });
+}
+
+function displayStats() {
+
+    document.getElementById("totalTrips").innerText =
+        trips.length;
+
+    const totalKm =
+        trips.reduce(
+            (sum, trip) => sum + Number(trip.km),
+            0
+        );
+
+    document.getElementById("totalKm").innerText =
+        totalKm.toLocaleString("ro-RO") + " km";
+
+    document.getElementById("totalLoads").innerText =
+        trips.filter(
+            trip => trip.operation === "Încărcare"
+        ).length;
+
+    document.getElementById("totalUnloads").innerText =
+        trips.filter(
+            trip => trip.operation === "Descărcare"
+        ).length;
+}
+
+</script>
+
+</body>
+</html>
