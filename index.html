@@ -2,404 +2,552 @@
 <html lang="ro">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
 <title>Jurnal Camion</title>
 
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
 <style>
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
 body {
     margin: 0;
     font-family: Arial, sans-serif;
-    background: #f2f4f7;
-    color: #111827;
-}
-
-header {
-    background: #111827;
     color: white;
-    padding: 20px;
-    text-align: center;
-    font-size: 24px;
-    font-weight: bold;
+    background:
+        linear-gradient(rgba(0,0,0,.78), rgba(0,0,0,.92)),
+        url("https://images.unsplash.com/photo-1519003722824-194d4455a60c?auto=format&fit=crop&w=1200&q=80")
+        center/cover fixed;
+    min-height: 100vh;
 }
 
 .container {
-    max-width: 600px;
+    width: 100%;
+    max-width: 500px;
     margin: auto;
-    padding: 15px;
+    padding: 18px;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 28px;
+}
+
+.header p {
+    color: #aaa;
+    margin-top: 6px;
 }
 
 .card {
-    background: white;
+    background: rgba(20,20,20,.90);
+    border: 1px solid #333;
+    border-radius: 18px;
     padding: 18px;
     margin-bottom: 15px;
-    border-radius: 15px;
-    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    box-shadow: 0 8px 25px rgba(0,0,0,.4);
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.stat {
+    background: #111;
+    border-radius: 14px;
+    padding: 15px;
+    text-align: center;
+}
+
+.stat .number {
+    font-size: 25px;
+    font-weight: bold;
+}
+
+.stat .label {
+    color: #999;
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+h2 {
+    font-size: 19px;
+    margin-top: 0;
 }
 
 label {
     display: block;
-    margin-top: 12px;
-    margin-bottom: 6px;
-    font-weight: bold;
+    color: #aaa;
+    font-size: 14px;
+    margin: 12px 0 6px;
 }
 
-input, textarea {
+input {
     width: 100%;
-    padding: 12px;
-    box-sizing: border-box;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    font-size: 16px;
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid #444;
+    background: #111;
+    color: white;
+    font-size: 17px;
+    outline: none;
 }
 
-textarea {
-    min-height: 80px;
+input:focus {
+    border-color: #fff;
 }
 
 button {
-    border: none;
-    border-radius: 10px;
-    padding: 13px;
-    font-size: 16px;
+    width: 100%;
+    border: 0;
+    border-radius: 13px;
+    padding: 16px;
+    margin-top: 14px;
+    font-size: 17px;
     font-weight: bold;
     cursor: pointer;
 }
 
-.save {
-    width: 100%;
-    margin-top: 18px;
-    background: #1683ff;
+.start {
+    background: #18a558;
     color: white;
 }
 
-.type-buttons {
-    display: flex;
-    gap: 10px;
-}
-
-.type-buttons button {
-    flex: 1;
-    background: #eee;
-}
-
-.type-buttons button.active {
-    background: #1683ff;
+.stop {
+    background: #d93636;
     color: white;
 }
 
-.menu {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 15px;
+.secondary {
+    background: #292929;
+    color: white;
 }
 
-.menu button {
-    flex: 1;
-    background: white;
+button:active {
+    transform: scale(.98);
+}
+
+.active {
+    border: 1px solid #18a558;
+}
+
+.active-text {
+    color: #18a558;
+    font-weight: bold;
+}
+
+.hidden {
+    display: none;
 }
 
 .trip {
-    border-top: 1px solid #ddd;
-    padding: 12px 0;
+    background: #111;
+    border-radius: 13px;
+    padding: 14px;
+    margin-top: 10px;
+    border-left: 4px solid #555;
 }
 
-.trip:first-child {
-    border-top: none;
+.trip strong {
+    font-size: 18px;
 }
 
-.badge {
-    display: inline-block;
-    padding: 5px 9px;
-    border-radius: 20px;
-    background: #e8f1ff;
-    color: #1261b5;
-    font-size: 13px;
+.trip small {
+    color: #999;
+}
+
+.km {
+    font-size: 22px;
     font-weight: bold;
+    margin-top: 5px;
 }
 
-.stat {
-    font-size: 28px;
-    font-weight: bold;
+.empty {
+    color: #777;
+    text-align: center;
+    padding: 15px;
+}
+
+.footer {
+    text-align: center;
+    color: #666;
+    font-size: 12px;
+    padding: 10px;
 }
 </style>
 </head>
 
 <body>
 
-<header>
-🚛 Jurnal Camion
-</header>
-
 <div class="container">
 
-<div class="menu">
-<button onclick="showSection('new')">➕ Cursă</button>
-<button onclick="showSection('history')">📋 Istoric</button>
-<button onclick="showSection('stats')">📊 Statistici</button>
-</div>
+    <div class="header">
+        <h1>🚛 JURNAL CAMION</h1>
+        <p>Evidența curselor și kilometrilor</p>
+    </div>
 
-<div id="new" class="section">
+    <div class="card">
+        <div class="stats">
+            <div class="stat">
+                <div class="number" id="monthlyKm">0</div>
+                <div class="label">KM LUNA ACEASTA</div>
+            </div>
 
-<div class="card">
+            <div class="stat">
+                <div class="number" id="monthlyTrips">0</div>
+                <div class="label">CURSE</div>
+            </div>
+        </div>
+    </div>
 
-<h2>➕ Cursă nouă</h2>
+    <div class="card" id="activeCard">
 
-<label>📍 Loc plecare</label>
-<input id="from" placeholder="Ex: Madrid">
+        <h2>▶️ Cursa actuală</h2>
 
-<label>📍 Destinație</label>
-<input id="to" placeholder="Ex: Barcelona">
+        <div id="noActive">
+            <label>Kilometraj START</label>
+            <input
+                type="number"
+                id="startKm"
+                placeholder="Ex: 458720"
+                inputmode="numeric"
+            >
 
-<label>🛣️ Kilometri</label>
-<input id="km" type="number" placeholder="Ex: 620">
+            <label>Număr remorcă</label>
+            <input
+                type="text"
+                id="startTrailer"
+                placeholder="Ex: R5837BCL"
+            >
 
-<label>📦 Operațiune</label>
+            <button class="start" onclick="startTrip()">
+                🚛 START CURSĂ
+            </button>
+        </div>
 
-<div class="type-buttons">
-<button id="loadBtn" class="active" onclick="setType('Încărcare')">
-🔵 Încărcare
-</button>
+        <div id="activeTrip" class="hidden">
 
-<button id="unloadBtn" onclick="setType('Descărcare')">
-🟢 Descărcare
-</button>
-</div>
+            <p class="active-text">🟢 CURSA ESTE ACTIVĂ</p>
 
-<label>📄 Număr CMR</label>
-<input id="cmr" placeholder="Ex: 123456">
+            <p>
+                Kilometri START:
+                <strong id="displayStartKm"></strong>
+            </p>
 
-<label>📝 Observații</label>
-<textarea id="notes" placeholder="Observații..."></textarea>
+            <p>
+                Remorcă:
+                <strong id="displayTrailer"></strong>
+            </p>
 
-<button class="save" onclick="saveTrip()">
-💾 SALVEAZĂ CURSA
-</button>
+            <label>Kilometraj STOP</label>
 
-</div>
+            <input
+                type="number"
+                id="stopKm"
+                placeholder="Ex: 460120"
+                inputmode="numeric"
+            >
 
-</div>
+            <button class="stop" onclick="stopTrip()">
+                🛑 STOP CURSĂ
+            </button>
 
-<div id="history" class="section" style="display:none">
+        </div>
 
-<div class="card">
+    </div>
 
-<h2>📋 Istoric curse</h2>
+    <div class="card">
 
-<div id="historyList">
-Nu există curse salvate.
-</div>
+        <h2>📋 Istoric curse</h2>
 
-</div>
+        <div id="history"></div>
 
-</div>
+        <button class="secondary" onclick="clearHistory()">
+            🗑️ Șterge istoricul
+        </button>
 
-<div id="stats" class="section" style="display:none">
+    </div>
 
-<div class="card">
-<div>Total curse</div>
-<div class="stat" id="totalTrips">0</div>
-</div>
-
-<div class="card">
-<div>Total kilometri</div>
-<div class="stat" id="totalKm">0 km</div>
-</div>
-
-<div class="card">
-<div>Încărcări</div>
-<div class="stat" id="totalLoads">0</div>
-</div>
-
-<div class="card">
-<div>Descărcări</div>
-<div class="stat" id="totalUnloads">0</div>
-</div>
-
-</div>
+    <div class="footer">
+        Jurnal Camion • versiunea 1.0
+    </div>
 
 </div>
 
 <script>
 
-let operation = "Încărcare";
+const tg = window.Telegram && window.Telegram.WebApp;
 
-let trips = JSON.parse(
-    localStorage.getItem("jurnalCamion") || "[]"
-);
-
-function setType(type) {
-
-    operation = type;
-
-    document
-        .getElementById("loadBtn")
-        .classList.toggle("active", type === "Încărcare");
-
-    document
-        .getElementById("unloadBtn")
-        .classList.toggle("active", type === "Descărcare");
+if (tg) {
+    tg.ready();
+    tg.expand();
 }
 
-function saveTrip() {
+let trips = JSON.parse(localStorage.getItem("truckTrips") || "[]");
 
-    const from =
-        document.getElementById("from").value.trim();
+let activeTrip = JSON.parse(
+    localStorage.getItem("activeTruckTrip") || "null"
+);
 
-    const to =
-        document.getElementById("to").value.trim();
+function saveData() {
 
-    const km =
-        Number(document.getElementById("km").value);
+    localStorage.setItem(
+        "truckTrips",
+        JSON.stringify(trips)
+    );
 
-    const cmr =
-        document.getElementById("cmr").value.trim();
+    localStorage.setItem(
+        "activeTruckTrip",
+        JSON.stringify(activeTrip)
+    );
+}
 
-    const notes =
-        document.getElementById("notes").value.trim();
+function startTrip() {
 
-    if (!from || !to || !km || !cmr) {
+    const km = Number(
+        document.getElementById("startKm").value
+    );
 
-        alert(
-            "Completează plecarea, destinația, kilometrii și CMR-ul."
-        );
+    const trailer = document
+        .getElementById("startTrailer")
+        .value
+        .trim();
 
+    if (!km) {
+        alert("Introdu kilometrajul de START.");
         return;
     }
 
+    if (!trailer) {
+        alert("Introdu numărul remorcii.");
+        return;
+    }
+
+    if (activeTrip) {
+        alert("Ai deja o cursă activă.");
+        return;
+    }
+
+    activeTrip = {
+        startKm: km,
+        trailer: trailer,
+        startDate: new Date().toISOString()
+    };
+
+    saveData();
+
+    document.getElementById("startKm").value = "";
+    document.getElementById("startTrailer").value = "";
+
+    render();
+}
+
+function stopTrip() {
+
+    if (!activeTrip) {
+        alert("Nu există o cursă activă.");
+        return;
+    }
+
+    const stopKm = Number(
+        document.getElementById("stopKm").value
+    );
+
+    if (!stopKm) {
+        alert("Introdu kilometrajul de STOP.");
+        return;
+    }
+
+    if (stopKm < activeTrip.startKm) {
+        alert("Kilometrajul STOP nu poate fi mai mic decât START.");
+        return;
+    }
+
+    const km = stopKm - activeTrip.startKm;
+
     const trip = {
-
-        date: new Date().toLocaleString("ro-RO"),
-
-        from: from,
-
-        to: to,
-
+        startKm: activeTrip.startKm,
+        stopKm: stopKm,
         km: km,
-
-        operation: operation,
-
-        cmr: cmr,
-
-        notes: notes
+        trailer: activeTrip.trailer,
+        startDate: activeTrip.startDate,
+        endDate: new Date().toISOString()
     };
 
     trips.unshift(trip);
 
-    localStorage.setItem(
-        "jurnalCamion",
-        JSON.stringify(trips)
+    activeTrip = null;
+
+    saveData();
+
+    document.getElementById("stopKm").value = "";
+
+    alert("Cursa a fost salvată: " + km + " km");
+
+    render();
+}
+
+function getCurrentMonthTrips() {
+
+    const now = new Date();
+
+    return trips.filter(trip => {
+
+        const date = new Date(trip.endDate);
+
+        return (
+            date.getMonth() === now.getMonth() &&
+            date.getFullYear() === now.getFullYear()
+        );
+
+    });
+}
+
+function renderStats() {
+
+    const monthTrips = getCurrentMonthTrips();
+
+    const totalKm = monthTrips.reduce(
+        (sum, trip) => sum + trip.km,
+        0
     );
 
-    document.getElementById("from").value = "";
-    document.getElementById("to").value = "";
-    document.getElementById("km").value = "";
-    document.getElementById("cmr").value = "";
-    document.getElementById("notes").value = "";
+    document.getElementById("monthlyKm").textContent =
+        totalKm.toLocaleString("ro-RO");
 
-    alert("✅ Cursa a fost salvată!");
-
-    showSection("history");
+    document.getElementById("monthlyTrips").textContent =
+        monthTrips.length;
 }
 
-function showSection(section) {
+function renderActive() {
 
-    document.getElementById("new").style.display = "none";
+    const noActive =
+        document.getElementById("noActive");
 
-    document.getElementById("history").style.display = "none";
+    const active =
+        document.getElementById("activeTrip");
 
-    document.getElementById("stats").style.display = "none";
+    if (activeTrip) {
 
-    document.getElementById(section).style.display = "block";
+        noActive.classList.add("hidden");
+        active.classList.remove("hidden");
 
-    if (section === "history") {
-        displayHistory();
-    }
+        document.getElementById("displayStartKm")
+            .textContent =
+            activeTrip.startKm.toLocaleString("ro-RO");
 
-    if (section === "stats") {
-        displayStats();
+        document.getElementById("displayTrailer")
+            .textContent =
+            activeTrip.trailer;
+
+    } else {
+
+        noActive.classList.remove("hidden");
+        active.classList.add("hidden");
+
     }
 }
 
-function displayHistory() {
+function renderHistory() {
 
-    const list =
-        document.getElementById("historyList");
+    const container =
+        document.getElementById("history");
 
     if (trips.length === 0) {
 
-        list.innerHTML =
-            "Nu există curse salvate.";
+        container.innerHTML =
+            '<div class="empty">Nu există curse salvate.</div>';
 
         return;
     }
 
-    list.innerHTML = "";
+    container.innerHTML = trips.map((trip, index) => {
 
-    trips.forEach(trip => {
+        const date =
+            new Date(trip.endDate);
 
-        const div =
-            document.createElement("div");
+        const formattedDate =
+            date.toLocaleDateString("ro-RO");
 
-        div.className = "trip";
+        return `
+            <div class="trip">
 
-        div.innerHTML = `
+                <strong>🚛 ${trip.km.toLocaleString("ro-RO")} km</strong>
 
-            <span class="badge">
-                ${trip.operation}
-            </span>
+                <div>
+                    Remorcă:
+                    <strong>${escapeHtml(trip.trailer)}</strong>
+                </div>
 
-            <h3>
-                ${trip.from} → ${trip.to}
-            </h3>
+                <div>
+                    ${trip.startKm.toLocaleString("ro-RO")}
+                    →
+                    ${trip.stopKm.toLocaleString("ro-RO")}
+                </div>
 
-            <div>
-                🛣️ ${trip.km} km
+                <small>
+                    ${formattedDate}
+                </small>
+
             </div>
-
-            <div>
-                📄 CMR: ${trip.cmr}
-            </div>
-
-            <div>
-                🕐 ${trip.date}
-            </div>
-
-            ${
-                trip.notes
-                ? `<div>📝 ${trip.notes}</div>`
-                : ""
-            }
-
         `;
 
-        list.appendChild(div);
-    });
+    }).join("");
+
 }
 
-function displayStats() {
+function escapeHtml(text) {
 
-    document.getElementById("totalTrips").innerText =
-        trips.length;
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 
-    const totalKm =
-        trips.reduce(
-            (sum, trip) => sum + Number(trip.km),
-            0
+}
+
+function clearHistory() {
+
+    if (!trips.length) {
+        return;
+    }
+
+    const confirmDelete =
+        confirm(
+            "Sigur vrei să ștergi tot istoricul?"
         );
 
-    document.getElementById("totalKm").innerText =
-        totalKm.toLocaleString("ro-RO") + " km";
+    if (!confirmDelete) {
+        return;
+    }
 
-    document.getElementById("totalLoads").innerText =
-        trips.filter(
-            trip => trip.operation === "Încărcare"
-        ).length;
+    trips = [];
 
-    document.getElementById("totalUnloads").innerText =
-        trips.filter(
-            trip => trip.operation === "Descărcare"
-        ).length;
+    saveData();
+
+    render();
 }
+
+function render() {
+
+    renderStats();
+    renderActive();
+    renderHistory();
+
+}
+
+render();
 
 </script>
 
